@@ -1,0 +1,18 @@
+SELECT
+  s.sid,
+  s.serial#,
+  s.username,
+  s.status,
+  s.sql_id,
+  s.event,
+  q.sql_text,
+  q.last_active_time
+FROM
+  v$session s
+JOIN
+  v$sql q ON s.sql_id = q.sql_id
+WHERE
+  s.status = 'ACTIVE'
+  AND s.username IS NOT NULL
+ORDER BY
+  s.last_call_et DESC;
