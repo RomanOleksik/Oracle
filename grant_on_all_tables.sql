@@ -12,3 +12,18 @@ FROM dba_views
 WHERE owner = 'A';
 
 SPOOL OFF
+
+-- Version 2
+
+BEGIN
+  FOR obj IN (
+    SELECT owner, object_name, object_type
+    FROM dba_objects
+    WHERE owner = 'A' AND object_type IN ('TABLE', 'VIEW')
+  ) LOOP
+    EXECUTE IMMEDIATE 
+      'GRANT SELECT, INSERT, UPDATE, DELETE ON ' || obj.owner || '.' || obj.object_name || ' TO B';
+  END LOOP;
+END;
+/
+
