@@ -74,3 +74,12 @@ EXCEPTION
 END;
 /
 ```
+
+EXPLAIN PLAN FOR
+DELETE FROM audit_audit
+WHERE t_source = 'Import'
+AND id > :v_last_processed_id_bind_variable -- Use a bind variable here to simulate the PL/SQL context
+AND ROWNUM <= 10000;
+-- The ROWNUM condition is handled by the optimizer internally; it's mostly for limiting rows *before* they are processed by the DELETE.
+
+SELECT PLAN_TABLE_OUTPUT FROM TABLE(DBMS_XPLAN.DISPLAY(FORMAT => 'BASIC +PREDICATE'));
