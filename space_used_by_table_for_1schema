@@ -1,0 +1,48 @@
+SELECT
+    owner,
+    table_name,
+    ROUND(SUM(total_bytes) / 1024 / 1024, 2) AS total_size_mb
+FROM
+    (
+        -- Table Segments
+        SELECT
+            owner,
+            segment_name AS table_name,
+            bytes AS total_bytes
+        FROM
+            all_segments
+        WHERE
+            segment_type IN ('TABLE', 'TABLE PARTITION', 'TABLE SUBPARTITION')
+        UNION ALL
+        -- Index Segments
+        SELECT
+            i.table_owner AS owner,
+            i.table_name,
+            s.bytes AS total_bytes
+        FROM
+            all_segments s
+            JOIN all_indexes i ON s.owner = i.owner
+                                AND s.segment_name = i.index_name
+        WHERE
+            s.segment_type IN ('INDEX', 'INDEX PARTITION', 'INDEX SUBPARTITION')
+        UNION ALL
+        -- LOB Segments (BLOB, CLOB)
+        SELECT
+            l.owner,
+            l.table_name,
+            s.bytes AS total_bytes
+        FROM
+            all_segments s
+            JOIN all_lobs l ON s.owner = l.owner
+                           AND s.segment_name = l.segment_name
+        WHERE
+            s.segment_type IN ('LOBSEGMENT', 'LOB PARTITION')
+    )
+WHERE
+    owner = 'XYZ'
+GROUP BY
+    owner,
+    table_name
+ORDER BY
+    total_size_mb DESC
+FETCH FIRST 20 ROWS ONLY;
